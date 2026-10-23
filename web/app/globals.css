@@ -1,0 +1,263 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #8015e8;   /* sayfa zemini: canlı mor */
+  --deep: rgba(38, 0, 92, 0.42);   /* paneller ve kutular: koyu mor, yarı saydam (tam siyah değil) */
+  --paper: rgba(38, 0, 92, 0.42);
+  --ring: rgba(255, 255, 255, 0.12);
+  --chalk: #ffffff; /* yazı: beyaz */
+  --mute: rgba(255, 255, 255, 0.72);
+  --monad: #ffffff; /* ana düğmeler beyaz */
+  --on-monad: #000000;
+  --hit: #ff7a93;
+  --ally: #6dffcf;
+  --gold: #ffe066;
+  --line: rgba(255, 255, 255, 0.45);
+}
+
+/* Siyah bölümler ve oyun sahnesi */
+.theme-dark {
+  --ink: #000000;
+  --deep: #111111;
+  --ring: #1d1d1d;
+  --chalk: #ffffff;
+  --mute: rgba(255, 255, 255, 0.65);
+  --monad: #ffffff;
+  --on-monad: #000000;
+  --hit: #ff5d73;
+  --ally: #4be3b0;
+  --gold: #ffcf5c;
+  --line: rgba(255, 255, 255, 0.25);
+  color: var(--chalk);
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-deep: var(--deep);
+  --color-paper: var(--paper);
+  --color-ring: var(--ring);
+  --color-chalk: var(--chalk);
+  --color-mute: var(--mute);
+  --color-monad: var(--monad);
+  --color-on-monad: var(--on-monad);
+  --color-hit: var(--hit);
+  --color-ally: var(--ally);
+  --color-gold: var(--gold);
+  --color-line: var(--line);
+  --font-display: var(--font-inter);
+  --font-sans: var(--font-inter);
+  --font-pixel: var(--font-pixel);
+}
+
+body {
+  overflow-x: clip; /* tam genişlik bölümler kaydırma çubuğu kadar taşmasın */
+  color: var(--chalk);
+  font-family: "Helvetica Neue", Helvetica, var(--font-inter), Arial, sans-serif;
+  background-color: var(--ink);
+}
+
+/* Başlıklar: kalın Helvetica, sıkı satır */
+.font-display {
+  font-family: "Helvetica Neue", Helvetica, var(--font-inter), Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+}
+
+/* Piksel başlık (giriş ekranı) */
+.font-pixel { font-family: var(--font-pixel), monospace; font-weight: 700; letter-spacing: -0.02em; line-height: 0.86; }
+
+/* Kayan yatay dilimler: iki kopya, farklı aralıklarla kırpılıp yana kayar */
+.glitch::before, .glitch::after {
+  content: attr(data-text);
+  position: absolute; inset: 0;
+  white-space: pre-line;
+  pointer-events: none;
+}
+.glitch::before { animation: glitch-a 0.9s steps(1) infinite; }
+.glitch::after { animation: glitch-b 1.3s steps(1) infinite; color: #000; mix-blend-mode: normal; }
+.glitch > span:first-child { display: inline-block; animation: glitch-jolt 1.6s steps(1) infinite; }
+@keyframes glitch-a {
+  0%, 100% { clip-path: inset(100% 0 0 0); transform: none; }
+  6% { clip-path: inset(10% 0 72% 0); transform: translateX(-16px); }
+  9% { clip-path: inset(46% 0 36% 0); transform: translateX(18px); }
+  12% { clip-path: inset(100% 0 0 0); }
+  30% { clip-path: inset(78% 0 6% 0); transform: translateX(-12px); }
+  33% { clip-path: inset(22% 0 64% 0); transform: translateX(10px); }
+  36% { clip-path: inset(100% 0 0 0); }
+  58% { clip-path: inset(62% 0 20% 0); transform: translateX(14px); }
+  61% { clip-path: inset(100% 0 0 0); }
+  80% { clip-path: inset(30% 0 52% 0); transform: translateX(-20px); }
+  84% { clip-path: inset(4% 0 86% 0); transform: translateX(12px); }
+  87% { clip-path: inset(100% 0 0 0); }
+}
+@keyframes glitch-b {
+  0%, 100% { clip-path: inset(100% 0 0 0); transform: none; }
+  14% { clip-path: inset(56% 0 30% 0); transform: translateX(12px); }
+  17% { clip-path: inset(100% 0 0 0); }
+  44% { clip-path: inset(18% 0 70% 0); transform: translateX(-14px); }
+  47% { clip-path: inset(84% 0 4% 0); transform: translateX(9px); }
+  50% { clip-path: inset(100% 0 0 0); }
+  72% { clip-path: inset(38% 0 48% 0); transform: translateX(-10px); }
+  75% { clip-path: inset(100% 0 0 0); }
+}
+@keyframes glitch-jolt {
+  0%, 100% { transform: none; }
+  7% { transform: translate(4px, -2px) skewX(-4deg); }
+  10% { transform: none; }
+  31% { transform: translate(-5px, 1px); }
+  34% { transform: none; }
+  81% { transform: translate(6px, 2px) skewX(5deg); }
+  85% { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glitch::before, .glitch::after, .glitch > span:first-child { animation: none; }
+}
+
+/* Küçük etiketler */
+.mono-label { font-size: 14px; }
+
+/* Beyaz kutu düğme, siyah yazı; üstüne gelince ters döner */
+.btn-box {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #ffffff; color: #000000; border: 1px solid #ffffff;
+  font-size: 15px; padding: 0.75rem 1.6rem; transition: background-color 0.15s, color 0.15s;
+}
+.btn-box:hover { background: transparent; color: #ffffff; }
+.btn-box:disabled { opacity: 0.5; }
+
+:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* Tur çözülünce hamle çizgileri çizilir: sayfadaki tek orkestre hareket */
+@keyframes draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+.draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: draw 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-5px, 2px); }
+  40% { transform: translate(5px, -2px); }
+  60% { transform: translate(-3px, 1px); }
+  80% { transform: translate(3px, -1px); }
+}
+.shake { animation: shake 0.5s ease-out; }
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+.pulse-ring { transform-box: fill-box; transform-origin: center; animation: pulse-ring 1.2s ease-out 2; }
+@keyframes winner {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.winner-glow { animation: winner 1.6s ease-in-out infinite; }
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.bob { animation: bob 2.8s ease-in-out infinite; }
+
+/* Ekran sarsıntısı: iki ad dönüşümlü kullanılır ki her vuruşta animasyon baştan başlasın */
+@keyframes stage-shake-a {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(calc(var(--p) * -7px), calc(var(--p) * 3px)); }
+  30% { transform: translate(calc(var(--p) * 6px), calc(var(--p) * -4px)); }
+  45% { transform: translate(calc(var(--p) * -5px), calc(var(--p) * 2px)); }
+  60% { transform: translate(calc(var(--p) * 3px), calc(var(--p) * -2px)); }
+  80% { transform: translate(calc(var(--p) * -1px), calc(var(--p) * 1px)); }
+}
+@keyframes stage-shake-b {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(calc(var(--p) * -7px), calc(var(--p) * 3px)); }
+  30% { transform: translate(calc(var(--p) * 6px), calc(var(--p) * -4px)); }
+  45% { transform: translate(calc(var(--p) * -5px), calc(var(--p) * 2px)); }
+  60% { transform: translate(calc(var(--p) * 3px), calc(var(--p) * -2px)); }
+  80% { transform: translate(calc(var(--p) * -1px), calc(var(--p) * 1px)); }
+}
+.stage-shake-a { animation: stage-shake-a calc(0.28s + var(--p) * 0.12s) ease-out; }
+.stage-shake-b { animation: stage-shake-b calc(0.28s + var(--p) * 0.12s) ease-out; }
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-2.2deg); }
+  50% { transform: rotate(2.2deg); }
+}
+.sway { animation: sway 7s ease-in-out infinite; }
+@keyframes flicker {
+  0% { transform: scale(1, 1) translateY(0); }
+  100% { transform: scale(0.88, 1.1) translateY(-2px); }
+}
+.flame { animation: flicker 0.35s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+
+@keyframes blink { 0%, 90%, 100% { transform: scaleY(1); } 94% { transform: scaleY(0.08); } }
+.blink { animation: blink 4s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 50%; }
+@keyframes drip { 0%, 100% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(8px); opacity: 0.2; } 71% { transform: translateY(0); opacity: 0; } }
+.drip { animation: drip 1.6s ease-in infinite; }
+
+@keyframes amb-snow { from { transform: translate(0, -10px); } to { transform: translate(-24px, 420px); } }
+@keyframes amb-ember { from { transform: translate(0, 0); opacity: 0.9; } to { transform: translate(26px, -300px); opacity: 0; } }
+@keyframes amb-dust { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(18px, -14px); } }
+.amb { animation-iteration-count: infinite; animation-timing-function: linear; }
+.amb-snow { animation-name: amb-snow; }
+.amb-ember { animation-name: amb-ember; }
+.amb-dust { animation-name: amb-dust; animation-timing-function: ease-in-out; }
+@keyframes lava-glow { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+.lava-glow { animation: lava-glow 2.4s ease-in-out infinite; }
+
+.hp-arc { transition: stroke-dasharray 0.6s cubic-bezier(0.22, 1, 0.36, 1), stroke 0.4s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .draw, .shake, .pulse-ring, .winner-glow, .bob, .blink, .drip, .amb, .lava-glow, .sway, .flame, .stage-shake-a, .stage-shake-b { animation: none; }
+  @keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.bob { animation: bob 2.8s ease-in-out infinite; }
+
+.hp-arc { transition: none; }
+}
+
+/* Maç tanıtımı, zafer ve spiker */
+@keyframes slide-l { from { opacity: 0; transform: translateX(-90px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slide-r { from { opacity: 0; transform: translateX(90px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes pop { 0% { opacity: 0; transform: scale(2.4); } 35% { opacity: 1; transform: scale(0.94); } 55% { transform: scale(1.04); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes confetti { 0% { transform: translate3d(0, -12vh, 0) rotate(0deg); opacity: 1; } 100% { transform: translate3d(var(--dx), 110vh, 0) rotate(var(--rot)); opacity: 1; } }
+@keyframes say-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.slide-l { animation: slide-l 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.slide-r { animation: slide-r 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.pop { animation: pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.say-in { animation: say-in 0.4s ease-out both; }
+.confetti { position: absolute; top: 0; place-self: start; animation: confetti var(--dur) linear var(--delay) both; }
+@media (prefers-reduced-motion: reduce) {
+  .slide-l, .slide-r, .pop, .say-in { animation: none; }
+  .confetti { display: none; }
+}
+
+/* Seyirci tepkileri: sahnenin altından yukarı süzülüp kaybolan emoji */
+@keyframes reaction-float {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  12% { opacity: 1; transform: translateY(-20px) scale(1.1); }
+  100% { transform: translateY(-260px) scale(1); opacity: 0; }
+}
+.reaction-float { animation: reaction-float 3s ease-out forwards; }
+@media (prefers-reduced-motion: reduce) {
+  .reaction-float { animation: none; opacity: 0; }
+}
+
+/* Ortak kart: siyah, köşeli, ince beyaz çizgi. Tüm sayfalarda aynı dil. */
+.card { border: 1px solid rgba(255, 255, 255, 0.25); background: #000; }
+.card-hover { transition: background-color 0.15s; }
+.card-hover:hover { background: #151515; }
+
+/* Yükleme iskeleti: nabız gibi parlar */
+@keyframes skel-pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.7; } }
+.skel { background: rgba(255, 255, 255, 0.16); animation: skel-pulse 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .skel { animation: none; opacity: 0.5; } }

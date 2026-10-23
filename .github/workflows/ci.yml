@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Aynı dalda yeni bir çalıştırma başlayınca eskisini iptal et
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    name: Kontrat (derle + test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx hardhat compile
+      - run: npx hardhat test
+
+  agents:
+    name: Ajan runner (tip denetimi + test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: agents/package-lock.json
+      - run: npm ci
+        working-directory: agents
+      - run: npx tsc --noEmit
+        working-directory: agents
+      - run: npm test
+        working-directory: agents
+
+  web:
+    name: Web (tip denetimi + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npx tsc --noEmit
+        working-directory: web
+      - name: Build
+        run: npx next build
+        working-directory: web
+        env:
+          NEXT_PUBLIC_ARENA_ADDRESS: "0x0000000000000000000000000000000000000001"
+
+  # Mevcut kodda henüz temizlenmemiş lint hataları var (çoğu no-explicit-any ve react-hooks/set-state-in-effect).
+  # Yeni hataları görünür tutmak için çalışır ama PR'ı engellemez; temizlenince continue-on-error kaldırılmalı.
+  web-lint:
+    name: Web (lint, bilgi amaçlı)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npx eslint
+        working-directory: web
