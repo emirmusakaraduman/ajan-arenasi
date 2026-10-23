@@ -56,7 +56,8 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
         working-directory: web
-      - run: npx tsc --noEmit
+      - name: Tip denetimi (önce Next rota tiplerini üretir)
+        run: npm run typecheck
         working-directory: web
       - name: Build
         run: npx next build
