@@ -8,6 +8,7 @@ import type { Agent } from "@/lib/useMatch";
 import { slotColor } from "@/lib/playback";
 import { Fighter } from "./Fighter";
 import { RowsSkeleton } from "./Skeletons";
+import { shortMsg, toAgent, type RawAgent } from "@/lib/rawTypes";
 
 type Row = Agent & { id: number };
 
@@ -22,11 +23,11 @@ function useAgents() {
       busy.current = true;
       try {
         const n = Math.min(Number(await read<bigint>("agentCount")), 60);
-        const list = await Promise.all(Array.from({ length: n }, (_, i) => read<any>("getAgent", [BigInt(i + 1)]).then((x) => ({ ...x, id: i + 1, matches: Number(x.matches), wins: Number(x.wins) }) as Row)));
+        const list = await Promise.all(Array.from({ length: n }, (_, i) => read<RawAgent>("getAgent", [BigInt(i + 1)]).then((x) => ({ ...toAgent(x), id: i + 1 }) as Row)));
         setRows(list);
         setError(null);
-      } catch (e: any) {
-        setError(e?.shortMessage ?? "Zincire ulaşılamadı");
+      } catch (e) {
+        setError(shortMsg(e));
       } finally {
         busy.current = false;
       }

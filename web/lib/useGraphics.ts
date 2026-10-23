@@ -27,8 +27,11 @@ export function useGraphics() {
     // Eski kayıtlar ("3d-high", "3d-low") tek 3B moda taşınır
     const pref = saved === "2d" ? "2d" : "3d";
     const pick: Gfx = !ok ? "2d" : pref;
+    // WebGL desteği ve kayıtlı tercih yalnızca tarayıcıda bilinir; sunucu çıktısıyla uyuşmazlık olmasın diye efektte okunur
+    /* eslint-disable react-hooks/set-state-in-effect */
     setGfx(pick);
     setReady(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
   const cycle = useCallback(() => {
     setGfx((g) => {

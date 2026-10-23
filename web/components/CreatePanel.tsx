@@ -5,6 +5,14 @@ import { isAddress } from "viem";
 import { FLAG_ADVANCED, FLAG_EVENTS, read } from "@/lib/arena";
 import type { Agent } from "@/lib/useMatch";
 import { PRESETS, isPreset } from "@/lib/presets";
+import { toAgent, type RawAgent } from "@/lib/rawTypes";
+
+/** Zincirdeki tüm ajanları okur */
+async function fetchAgents(): Promise<Agent[]> {
+  const n = Number(await read<bigint>("agentCount"));
+  const list = await Promise.all(Array.from({ length: n }, (_, i) => read<RawAgent>("getAgent", [BigInt(i + 1)])));
+  return list.map(toAgent);
+}
 
 type Props = {
   mode?: "both" | "match"; // "match": yalnızca maç kurma formu (ajan formu stüdyoda)
@@ -31,12 +39,12 @@ export function CreatePanel({ mode = "both", address, busy, send, onCreated }: P
   const [advanced, setAdvanced] = useState(false); // çalma, ağır saldırı, toplu ittifak
   const [events, setEvents] = useState(false);     // rastgele arena olayları
 
-  const loadAgents = useCallback(async () => {
-    const n = Number(await read<bigint>("agentCount"));
-    const list = await Promise.all(Array.from({ length: n }, (_, i) => read<any>("getAgent", [BigInt(i + 1)])));
-    setAll(list as Agent[]);
+  const loadAgents = useCallback(async () => setAll(await fetchAgents()), []);
+  useEffect(() => {
+    let stop = false;
+    fetchAgents().then((l) => { if (!stop) setAll(l); }).catch(() => {});
+    return () => { stop = true; };
   }, []);
-  useEffect(() => { loadAgents().catch(() => {}); }, [loadAgents]);
 
   const opOk = isAddress(operator);
   const canCreate = name.trim().length > 0 && name.length <= 32 && opOk && persona.length <= 400 && strategy.length <= 400;

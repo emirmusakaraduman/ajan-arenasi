@@ -65,12 +65,9 @@ jobs:
         env:
           NEXT_PUBLIC_ARENA_ADDRESS: "0x0000000000000000000000000000000000000001"
 
-  # Mevcut kodda henüz temizlenmemiş lint hataları var (çoğu no-explicit-any ve react-hooks/set-state-in-effect).
-  # Yeni hataları görünür tutmak için çalışır ama PR'ı engellemez; temizlenince continue-on-error kaldırılmalı.
   web-lint:
-    name: Web (lint, bilgi amaçlı)
+    name: Web (lint)
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

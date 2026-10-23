@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
@@ -157,14 +157,22 @@ function Ambient({ theme }: { theme: Theme }) {
   const data = useMemo(() => {
     const pos = new Float32Array(COUNT * 3);
     const seed = new Float32Array(COUNT * 3);
+    // Tohumlu üreteç (mulberry32): render saf kalır, parçacık deseni her açılışta aynıdır
+    let s = 20240611;
+    const rnd = () => {
+      s = (s + 0x6d2b79f5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
     for (let i = 0; i < COUNT; i++) {
-      const a = Math.random() * Math.PI * 2, r = Math.random() * 9;
+      const a = rnd() * Math.PI * 2, r = rnd() * 9;
       pos[i * 3] = Math.cos(a) * r;
-      pos[i * 3 + 1] = Math.random() * 7;
+      pos[i * 3 + 1] = rnd() * 7;
       pos[i * 3 + 2] = Math.sin(a) * r;
-      seed[i * 3] = Math.random();
-      seed[i * 3 + 1] = 0.4 + Math.random();
-      seed[i * 3 + 2] = Math.random() * 6.28;
+      seed[i * 3] = rnd();
+      seed[i * 3 + 1] = 0.4 + rnd();
+      seed[i * 3 + 2] = rnd() * 6.28;
     }
     return { pos, seed };
   }, []);

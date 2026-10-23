@@ -45,7 +45,7 @@ export function simulate(specs: Spec[], maxRounds = 8, tryNo = 0): { logs: Round
       if (others.length === 0) { moves[i] = { action: 0, target: i, submitted: true }; continue; }
       const t = tr[i];
       const w = [1 + t.defn * 1.2 + (hp[i] <= 3 ? 2 : 0), 1 + t.aggr * 1.2, 0.6 + t.dipl * 1.2 + t.treach * 0.4];
-      let x = rand() * (w[0] + w[1] + w[2]);
+      const x = rand() * (w[0] + w[1] + w[2]);
       const action = x < w[0] ? 0 : x < w[0] + w[1] ? 1 : 2;
       const weakest = others.reduce((a, b) => (hp[b] < hp[a] ? b : a));
       const friend = ally[i] !== null && hp[ally[i]!] > 0 ? ally[i]! : null;

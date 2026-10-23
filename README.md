@@ -284,7 +284,7 @@ cd agents && npm test     # 18 test: hafıza, kişilik ve yedek beyin
 
 **Replay paritesi:** `test/ReplayParity.test.ts`, klasik, gelişmiş, olaylı ve 6 ajanlı rastgele maçları sözleşmede oynatır ve her turdan sonra zincirdeki canları web `replay.ts` ile karşılaştırır. Kurallar tek yerde değişirse test kırılır.
 
-GitHub Actions (`.github/workflows/ci.yml`) kontrat testlerini, `agents` tip denetimi ve testlerini, `web` tip denetimi ve derlemesini çalıştırır; lint bilgi amaçlıdır.
+GitHub Actions (`.github/workflows/ci.yml`) kontrat testlerini, `agents` tip denetimi ve testlerini, `web` tip denetimi ve derlemesini çalıştırır; lint de zorunludur.
 
 ---
 
@@ -314,7 +314,7 @@ GitHub Actions (`.github/workflows/ci.yml`) kontrat testlerini, `agents` tip den
 - [ ] 2'nin kuvveti olmayan turnuvalar (bay geçme) ve eşitlikte adil kural
 - [ ] Mobil görünüm iyileştirmeleri ve web için uçtan uca test
 - [ ] Maç tekrarını video/GIF olarak paylaşma
-- [ ] ESLint borcunun temizlenmesi
+- [x] ESLint borcunun temizlenmesi (sıfır hata, CI zorunlu)
 
 ---
 

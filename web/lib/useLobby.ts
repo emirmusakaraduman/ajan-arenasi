@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ARENA_ADDRESS, read } from "./arena";
 import type { Agent } from "./useMatch";
+import { shortMsg, toAgent, type RawAgent, type RawMatch } from "./rawTypes";
 
 export type MatchCard = {
   id: number; phase: number; round: number; maxRounds: number; bettingEnd: number;
@@ -32,12 +33,12 @@ export function useLobby(limit = 12) {
         const n = Number(await read<bigint>("matchCount"));
         const ids = Array.from({ length: Math.min(n, limit) }, (_, i) => n - i);
         const raw = await Promise.all(
-          ids.map((id) => Promise.all([read<any>("getMatch", [BigInt(id)]), read<bigint[]>("getMatchAgents", [BigInt(id)])])),
+          ids.map((id) => Promise.all([read<RawMatch>("getMatch", [BigInt(id)]), read<bigint[]>("getMatchAgents", [BigInt(id)])])),
         );
         // eksik ajanlar aynı anda istenir (okumalar tek multicall çağrısında toplanır)
         const missing = [...new Set(raw.flatMap(([, list]) => list.map(Number)))].filter((k) => !agentCache.has(k));
-        const got = await Promise.all(missing.map((k) => read<any>("getAgent", [BigInt(k)])));
-        got.forEach((x, i) => agentCache.set(missing[i], { ...x, matches: Number(x.matches), wins: Number(x.wins) } as Agent));
+        const got = await Promise.all(missing.map((k) => read<RawAgent>("getAgent", [BigInt(k)])));
+        got.forEach((x, i) => agentCache.set(missing[i], toAgent(x)));
         // bahis dağılımı yalnızca bitmemiş maçlar için okunur (oran göstermek için)
         const stakes = await Promise.all(
           raw.map(([m, list], i) =>
@@ -63,8 +64,8 @@ export function useLobby(limit = 12) {
         setCount(n);
         setCards(next);
         setError(null);
-      } catch (e: any) {
-        setError(e?.shortMessage ?? "Zincire ulaşılamadı");
+      } catch (e) {
+        setError(shortMsg(e));
       } finally {
         busy.current = false;
       }

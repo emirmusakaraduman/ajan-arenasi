@@ -9,6 +9,8 @@ export type RawMatch = {
   commitDeadline: number | bigint; revealDeadline: number | bigint; winnerSlot: number | bigint; pool: bigint; fee: bigint;
 };
 
+export type RawMove = { action: number | bigint; target: number | bigint; submitted: boolean };
+
 export type RawTournament = {
   creator: string; size: number | bigint; round: number | bigint; rounds: number | bigint;
   bettingSeconds: number | bigint; roundSeconds: number | bigint; maxRounds: number | bigint; flags: number | bigint; champion: number | bigint;

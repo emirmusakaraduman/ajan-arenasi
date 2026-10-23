@@ -265,6 +265,8 @@ export function Fighter3D({ index, name, live }: Props) {
     return g;
   }, []);
 
+  // three.js nesneleri (geometri, malzeme, sahne düğümleri) her karede imperatif güncellenir: R3F'in tasarımı
+  // eslint-disable-next-line react-hooks/immutability
   useFrame((state, dt) => {
     const L = live.current;
     const n = Math.max(L.n, 1);
@@ -346,6 +348,7 @@ export function Fighter3D({ index, name, live }: Props) {
         const r = gold ? 1 : 0.95, g = gold ? 0.8 : 0.78, b = gold ? 0.35 : 0.7;
         col.set([r * f, g * f, b * f, r * f * 0.2, g * f * 0.2, b * f * 0.2], i * 6);
       }
+      // eslint-disable-next-line react-hooks/immutability
       trailGeo.attributes.position.needsUpdate = true;
       trailGeo.attributes.color.needsUpdate = true;
       trail.current.visible = sm.length > 1;

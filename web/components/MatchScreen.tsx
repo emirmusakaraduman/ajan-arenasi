@@ -24,6 +24,7 @@ import { ReactionBar, ReactionOverlay } from "./ReactionBar";
 import { useReactions } from "@/lib/useReactions";
 import { themeFor } from "@/lib/themes";
 import { announce, stopAnnouncing } from "@/lib/voice";
+import { useNow } from "@/lib/useNow";
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.max(s % 60, 0)).padStart(2, "0")}`;
 
@@ -31,9 +32,9 @@ const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.max(s % 60, 0)
 export function MatchScreen({ matchId }: { matchId: number }) {
   // Kullanıcı seçene kadar sekme türetilir: bahis açıksa Bahis, değilse Canlı akış
   const [picked, setPicked] = useState<"bet" | "feed" | "create" | null>(null);
-  const [now, setNow] = useState(0);
+  const now = useNow();
   const [intro, setIntro] = useState(false);
-  const [victory, setVictory] = useState(false);
+  const [victoryDone, setVictoryDone] = useState(0); // en son kapatılan zafer sahnesinin finishedTick değeri
   const [voice, setVoice] = useState(false);
   const [copied, setCopied] = useState<"" | "invite" | "replay">("");
   const wantReplay = useSearchParams().get("replay") === "1"; // "Tekrarı paylaş" bağlantısı: açılınca maç baştan oynar
@@ -46,10 +47,9 @@ export function MatchScreen({ matchId }: { matchId: number }) {
   const prev = useRef<{ phase: number; first: boolean } | null>(null);
 
   useEffect(() => {
-    setNow(Math.floor(Date.now() / 1000));
-    const t = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
+    // Spiker sesi tercihi localStorage'dan yalnızca tarayıcıda okunur (hidrasyon uyuşmazlığı olmasın diye efekt içinde)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     try { setVoice(window.localStorage.getItem("arena-voice") === "1"); } catch {}
-    return () => clearInterval(t);
   }, []);
 
   // Maç canlıya geçince (ya da canlı maça ilk girişte) tanıtım oynar
@@ -59,8 +59,6 @@ export function MatchScreen({ matchId }: { matchId: number }) {
     if ((p && p.phase === 1 && view.match.phase === 2) || (!p && view.match.phase === 2 && view.history.length === 0)) setIntro(true);
     prev.current = { phase: view.match.phase, first: false };
   }, [view]);
-
-  useEffect(() => { if (pb.finishedTick > 0) setVictory(true); }, [pb.finishedTick]);
 
   // ?replay=1 ile açılan bitmiş maç, tanıtımla birlikte baştan oynar (bir kez)
   const replay = pb.replay;
@@ -84,7 +82,9 @@ export function MatchScreen({ matchId }: { matchId: number }) {
   }, [pb.announcement?.key, voice]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const endIntro = useCallback(() => setIntro(false), []);
-  const endVictory = useCallback(() => setVictory(false), []);
+  // Zafer sahnesi, oynatma her bittiğinde (finishedTick artınca) açılır; kapatılınca o değer "görüldü" sayılır
+  const victory = pb.finishedTick > victoryDone;
+  const endVictory = useCallback(() => setVictoryDone(pb.finishedTick), [pb.finishedTick]);
   const busy = wallet.tx.status === "wallet" || wallet.tx.status === "pending";
 
   const chat = !view ? [] : pb.playing && pb.activeRound !== null ? (view.messages[pb.activeRound] ?? []) : view.match.phase === 2 ? view.live : [];

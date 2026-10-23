@@ -76,7 +76,7 @@ export function Crowd({ theme, live }: { theme: Theme; live: LiveRef }) {
           sign: signIdx,
         };
       }),
-    [theme],
+    [theme, COUNT],
   );
 
   useEffect(() => {

@@ -34,18 +34,21 @@ export function usePlayback(view: MatchView | null, hold = false, mode: "2d" | "
   const prevShown = useRef(0);
   const raf = useRef(0);
   const speedRef = useRef(speed);
-  speedRef.current = speed;
+  useEffect(() => { speedRef.current = speed; }, [speed]); // animasyon döngüsü güncel hızı ref'ten okur
 
   // Başka bir maça geçince oynatma yapmadan güncel duruma atla
   useEffect(() => {
     if (matchId === null) return;
     if (synced !== matchId) {
+      // Maç değişince oynatma durumu tek seferde sıfırlanır; bu bilinçli bir durum makinesi geçişidir
+      /* eslint-disable react-hooks/set-state-in-effect */
       setSynced(matchId);
       setShown(total);
       setPlaying(false);
       played.current = false;
       announcedKey.current = "";
       setAnnouncement(null);
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [matchId, total, synced]);
 
@@ -58,12 +61,13 @@ export function usePlayback(view: MatchView | null, hold = false, mode: "2d" | "
   // Sıradaki tur varsa oynat
   useEffect(() => {
     if (!log || hold) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- oynatılacak tur yoksa ya da bekletiliyorsa durum kapanır
       setPlaying(false);
       return;
     }
     setPlaying(true);
     played.current = true;
-    let start = performance.now();
+    const start = performance.now();
     let last = start;
     let elapsed = 0;
     let gapUntil = 0;

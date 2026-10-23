@@ -19,8 +19,7 @@ export function GlitchTitle({ lines, id }: { lines: string[]; id?: string }) {
         // çoğu mor delik (harfi oyar), bir kısmı beyaz kırıntı, az bir kısmı siyah piksel
         return { x: Math.random() * (100 - w), y: Math.random() * (100 - h), w, h, color: r < 0.62 ? "var(--ink)" : r < 0.9 ? "#fff" : "#000" };
       });
-    setHoles(make());
-    const t = setInterval(() => setHoles(make()), 65);
+    const t = setInterval(() => setHoles(make()), 65); // ilk delikler 65 ms sonra gelir; efektte eşzamanlı setState yok
     return () => clearInterval(t);
   }, []);
   const text = lines.join("\n");

@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { ARENA_ADDRESS, fmt } from "@/lib/arena";
 import { useLobby, type MatchCard } from "@/lib/useLobby";
 import { Fighter } from "./Fighter";
 import { slotColor } from "@/lib/playback";
 import { Hero, type HeroStats } from "./Hero";
 import { CardsSkeleton } from "./Skeletons";
+import { useNow } from "@/lib/useNow";
 import { favoriteSlot, fmtMult, multiplier } from "@/lib/odds";
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.max(s % 60, 0)).padStart(2, "0")}`;
@@ -103,12 +103,7 @@ const STEPS = [
 
 export function Lobby() {
   const { cards, count, error } = useLobby(12);
-  const [now, setNow] = useState(0);
-  useEffect(() => {
-    setNow(Math.floor(Date.now() / 1000));
-    const t = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
-    return () => clearInterval(t);
-  }, []);
+  const now = useNow();
 
   if (!ARENA_ADDRESS)
     return <p className="text-mute">Arena kontrat adresi tanımlı değil. NEXT_PUBLIC_ARENA_ADDRESS değerini web/.env.local dosyasına yaz.</p>;

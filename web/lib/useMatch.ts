@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { read, ARENA_ADDRESS } from "./arena";
 import { replayAll, type ArenaEvent, type Move, type RoundLog } from "./replay";
+import { shortMsg, toAgent, type RawAgent, type RawMatch, type RawMove } from "./rawTypes";
 
 export type Agent = { owner: string; operator: string; name: string; persona: string; strategy: string; matches: number; wins: number };
 export type MatchInfo = {
@@ -39,7 +40,7 @@ export function useMatch(requested: number | null, user: string | null) {
       const count = Number(await read<bigint>("matchCount"));
       if (count === 0) { setView(null); return; }
       const id = requested && requested <= count ? requested : count;
-      const [m, ids, hpRaw] = await Promise.all([read<any>("getMatch", [BigInt(id)]), read<bigint[]>("getMatchAgents", [BigInt(id)]), read<number[]>("getHp", [BigInt(id)])]);
+      const [m, ids, hpRaw] = await Promise.all([read<RawMatch>("getMatch", [BigInt(id)]), read<bigint[]>("getMatchAgents", [BigInt(id)]), read<number[]>("getHp", [BigInt(id)])]);
       const n = ids.length;
       const match: MatchInfo = {
         phase: Number(m.phase), bettingEnd: Number(m.bettingEnd), round: Number(m.round), maxRounds: Number(m.maxRounds),
@@ -53,7 +54,7 @@ export function useMatch(requested: number | null, user: string | null) {
       // Ajan bilgisi (galibiyet sayısı dahil) maç evresi değişince yenilenir
       const key = `${id}:${match.phase}`;
       if (agentsRef.current.key !== key) {
-        const list = await Promise.all(ids.map((a) => read<any>("getAgent", [a]).then((x) => ({ ...x, matches: Number(x.matches), wins: Number(x.wins) }) as Agent)));
+        const list = await Promise.all(ids.map((a) => read<RawAgent>("getAgent", [a]).then(toAgent)));
         agentsRef.current = { key, list };
       }
 
@@ -63,15 +64,15 @@ export function useMatch(requested: number | null, user: string | null) {
       const done: Move[][] = [];
       const doneMsgs: Msg[][] = [];
       const fetchMsgs = (r: number) =>
-        read<any[]>("getMessages", [BigInt(id), r])
-          .then((l) => l.map((x) => ({ slot: Number(x.slot), text: x.text as string })))
+        read<{ slot: number | bigint; text: string }[]>("getMessages", [BigInt(id), r])
+          .then((l) => l.map((x) => ({ slot: Number(x.slot), text: x.text })))
           .catch(() => [] as Msg[]); // mesaj özelliği olmayan eski kontratlarda boş say
       // Eksik turları tek seferde, paralel çek (ilk açılış hızlı olsun)
       await Promise.all(
         Array.from({ length: match.round }, (_, r) => r).map(async (r) => {
           const ck = `${id}:${r}`;
           if (!rounds.current.has(ck)) {
-            const mv = await Promise.all(ids.map((_, s) => read<any>("getMove", [BigInt(id), r, s]).then((x) => ({ action: Number(x.action), target: Number(x.target), submitted: x.submitted }))));
+            const mv = await Promise.all(ids.map((_, s) => read<RawMove>("getMove", [BigInt(id), r, s]).then((x) => ({ action: Number(x.action), target: Number(x.target), submitted: x.submitted }))));
             rounds.current.set(ck, mv);
           }
           if (!said.current.has(ck)) said.current.set(ck, await fetchMsgs(r));
@@ -94,7 +95,7 @@ export function useMatch(requested: number | null, user: string | null) {
         const cur = match.round;
         live = await fetchMsgs(cur);
         commits = await Promise.all(ids.map((_, s) => read<string>("getCommit", [BigInt(id), cur, s]).then((h) => !/^0x0+$/.test(h))));
-        revealed = await Promise.all(ids.map((_, s) => read<any>("getMove", [BigInt(id), cur, s]).then((x) => ({ action: Number(x.action), target: Number(x.target), submitted: x.submitted }))));
+        revealed = await Promise.all(ids.map((_, s) => read<RawMove>("getMove", [BigInt(id), cur, s]).then((x) => ({ action: Number(x.action), target: Number(x.target), submitted: x.submitted }))));
       }
 
       // Ağır saldırı hazırlayan ajanlar (yalnızca gelişmiş maçlarda)
@@ -112,14 +113,16 @@ export function useMatch(requested: number | null, user: string | null) {
 
       setView({ id, count, match, agents: agentsRef.current.list, agentIds: ids.map(Number), hp: hpRaw.map(Number), stakes, history: replayAll(n, done, done.map((_, r) => arenaEv.current.get(`${id}:${r}`) ?? null)), messages: doneMsgs, live, commits, revealed, myBets, claimed, flags, charges });
       setError(null);
-    } catch (e: any) {
-      setError(e?.shortMessage ?? "Zincire ulaşılamadı");
+    } catch (e) {
+      setError(shortMsg(e));
     } finally {
       busy.current = false;
     }
   }, [requested, user]);
 
   useEffect(() => {
+    // setState yalnızca load içinde ve await sonrasında çağrılır (eşzamanlı değil); kural bunu işlevin içinden göremiyor
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     const t = setInterval(load, 3000);
     return () => clearInterval(t);

@@ -1,12 +1,12 @@
 "use client";
 
 import { createContext, createElement, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { createWalletClient, custom, type Abi } from "viem";
+import { createWalletClient, custom, type Abi, type EIP1193Provider } from "viem";
 import { ARENA_ADDRESS, arenaAbi, monadTestnet, publicClient } from "./arena";
 
 export type TxState = { status: "idle" | "wallet" | "pending" | "done" | "error"; hash?: string; message?: string };
 
-const eth = () => (typeof window === "undefined" ? undefined : (window as any).ethereum);
+const eth = (): EIP1193Provider | undefined => (typeof window === "undefined" ? undefined : (window as unknown as { ethereum?: EIP1193Provider }).ethereum);
 
 function useWalletState() {
   const [address, setAddress] = useState<`0x${string}` | null>(null);
@@ -14,10 +14,10 @@ function useWalletState() {
 
   useEffect(() => {
     // Daha önce izin verilmişse sessizce bağlan
-    eth()?.request({ method: "eth_accounts" }).then((a: string[]) => a[0] && setAddress(a[0] as `0x${string}`)).catch(() => {});
+    eth()?.request({ method: "eth_accounts" }).then((a) => a[0] && setAddress(a[0])).catch(() => {});
   }, []);
 
-  const client = useCallback(() => createWalletClient({ chain: monadTestnet, transport: custom(eth()) }), []);
+  const client = useCallback(() => createWalletClient({ chain: monadTestnet, transport: custom(eth()!) }), []);
 
   const connect = useCallback(async () => {
     if (!eth()) { setTx({ status: "error", message: "Tarayıcıda cüzdan bulunamadı. MetaMask ya da Rabby kur." }); return null; }
@@ -42,8 +42,9 @@ function useWalletState() {
         await publicClient.waitForTransactionReceipt({ hash });
         setTx({ status: "done", hash });
         return hash;
-      } catch (e: any) {
-        setTx({ status: "error", message: e?.shortMessage ?? e?.message ?? "İşlem gönderilemedi" });
+      } catch (e) {
+        const err = e as { shortMessage?: string; message?: string };
+        setTx({ status: "error", message: err?.shortMessage ?? err?.message ?? "İşlem gönderilemedi" });
         return null;
       }
     },

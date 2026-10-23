@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { BrightnessContrast, Bloom, ChromaticAberration, EffectComposer, HueSaturation, ToneMapping, Vignette } from "@react-three/postprocessing";
 import { ContactShadows, PerformanceMonitor } from "@react-three/drei";
@@ -50,6 +50,8 @@ function Rig({ live }: { live: LiveRef }) {
   const { camera, size } = useThree();
   const energy = useRef({ id: 0, e: 0 });
   const tgt = useMemo(() => new THREE.Vector3(), []);
+  // Kamera nesnesi her karede imperatif güncellenir (R3F'in tasarımı)
+  /* eslint-disable react-hooks/immutability */
   useFrame((state, dt) => {
     const L = live.current;
     const t = state.clock.elapsedTime;
@@ -77,6 +79,7 @@ function Rig({ live }: { live: LiveRef }) {
     cam.lookAt(tgt);
     cam.rotation.z += Math.sin(t * 47) * 0.012 * e;
   });
+  /* eslint-enable react-hooks/immutability */
   return null;
 }
 /** Ad etiketlerini karakterlerin kafasının üstüne, ekran katmanında konumlar. */
@@ -130,20 +133,22 @@ export default function Stage3D({ agents, hp, match, frame, commits, round, stat
   const onDecline = useCallback(() => setPerf(0.62), []);
   const onIncline = useCallback(() => setPerf(1), []);
   const finished = match.phase === 3 && settled && !frame;
-  live.current = {
-    frame,
-    hp,
-    names: agents.map((a) => a.name),
-    n: agents.length,
-    finished,
-    winnerSlot: match.winnerSlot,
-    phase: match.phase,
-    commits,
-    speaking,
-    shake,
-    tags: live.current.tags ?? [],
-    nums: live.current.nums ?? [],
-  };
+  // Üç boyutlu sahne bu "canlı" nesneyi her karede okur. Render sırasında değil, DOM'a işlendikten sonra güncellenir;
+  // etiket ve sayı düğümleri (tags, nums) ref'lerle ayrıca doldurulduğu için korunur.
+  useLayoutEffect(() => {
+    Object.assign(live.current, {
+      frame,
+      hp,
+      names: agents.map((a) => a.name),
+      n: agents.length,
+      finished,
+      winnerSlot: match.winnerSlot,
+      phase: match.phase,
+      commits,
+      speaking,
+      shake,
+    });
+  });
   const hudHp = frame ? frame.agents.map((a) => a.hp) : hp;
   const cap = frame?.caption;
   const title = frame?.title;

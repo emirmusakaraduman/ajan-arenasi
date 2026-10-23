@@ -50,9 +50,12 @@ export function Header() {
   const [music, setMusic] = useState(false);
 
   useEffect(() => {
+    // Ses tercihi localStorage'dan yalnızca tarayıcıda okunabilir (hidrasyon uyuşmazlığı olmasın diye efekt içinde)
+    /* eslint-disable react-hooks/set-state-in-effect */
     setMutedState(isMuted());
     const on = isMusicOn();
     setMusic(on);
+    /* eslint-enable react-hooks/set-state-in-effect */
     if (on) startMusic(); // tarayıcı ilk tıklamaya kadar sesi tutar, tıklayınca başlar
   }, []);
 

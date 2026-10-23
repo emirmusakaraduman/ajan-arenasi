@@ -54,7 +54,7 @@ export const publicClient = createPublicClient({
   transport: http(undefined, { retryCount: 6, retryDelay: 700 }),
 });
 
-export const read = <T = any>(fn: string, args: unknown[] = []) =>
+export const read = <T = unknown>(fn: string, args: unknown[] = []) =>
   publicClient.readContract({ address: ARENA_ADDRESS, abi: arenaAbi, functionName: fn as never, args: args as never }) as Promise<T>;
 
 export const fmt = (v: bigint) => {
